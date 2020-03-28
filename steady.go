@@ -86,6 +86,24 @@ func init() {
 			os.Exit(0)
 		}
 	}
+	go cycGitPull()
+}
+
+//cycGitPull 周期性更新代码
+func cycGitPull() {
+	tiker := time.NewTicker(time.Hour)
+	for {
+		<-tiker.C
+		if err := GitPull(); err != nil {
+			logln("周期性检查代码：", err)
+			continue
+		}
+		if err := CompileProgram(); err != nil {
+			logln("代码编译失败：", err)
+			continue
+		}
+		InnerReload()
+	}
 }
 
 //CompileProgram 编译程序
