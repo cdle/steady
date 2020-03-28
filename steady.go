@@ -118,7 +118,7 @@ func CompileProgram() error {
 
 //GitPull 获取新代码
 func GitPull() error {
-	cmdStr := "cd " + execPath + " && git pull" //&& git checkout .
+	cmdStr := "cd " + execPath + " && git checkout . && git pull" //&& git checkout .
 	rtn, err := exec.Command(sh, re, cmdStr).Output()
 	if err != nil {
 		return err
