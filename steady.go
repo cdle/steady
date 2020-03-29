@@ -9,7 +9,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"runtime"
 	"strings"
 	"time"
 )
@@ -98,7 +97,7 @@ func init() {
 			logln("程序已运行" + fmt.Sprint(pids) + "!")
 			os.Exit(1)
 		}
-		go cycGitPull()
+		// go cycGitPull()
 		return
 	}
 	logln("尝试指令查看运行日志", "tail -f "+execPath+"/"+processName+".out")
@@ -110,24 +109,24 @@ func init() {
 }
 
 //cycGitPull 周期性更新代码
-func cycGitPull() {
-	if runtime.GOOS == "darwin" {
-		return
-	}
-	tiker := time.NewTicker(time.Hour)
-	for {
-		if err := GitPull(); err != nil {
-			logln("周期性检查代码：", err)
-			continue
-		}
-		if err := CompileProgram(); err != nil {
-			logln("代码编译失败：", err)
-			continue
-		}
-		InnerReload()
-		<-tiker.C
-	}
-}
+// func cycGitPull() {
+// 	if runtime.GOOS == "darwin" {
+// 		return
+// 	}
+// 	tiker := time.NewTicker(time.Hour)
+// 	for {
+// 		if err := GitPull(); err != nil {
+// 			logln("周期性检查代码：", err)
+// 			continue
+// 		}
+// 		if err := CompileProgram(); err != nil {
+// 			logln("代码编译失败：", err)
+// 			continue
+// 		}
+// 		InnerReload()
+// 		<-tiker.C
+// 	}
+// }
 
 //CompileProgram 编译程序
 func CompileProgram() error {
