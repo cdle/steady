@@ -42,7 +42,7 @@ func init() {
 		switch os.Args[1] {
 		//热更新
 		case "-graceful":
-			logln("系统热更新成功！")
+			logln("系统重启！")
 			return
 		case "-reload": //重新加载
 			if err := Reload(); err != nil {
@@ -65,35 +65,51 @@ func init() {
 			}
 			logln("停止程序成功!")
 			os.Exit(0)
-		}
-	}
-	pids, _ := peersID()
-	if len(pids) != 0 {
-		logln("程序已运行!")
-		os.Exit(1)
-	}
-	if runtime.GOOS != "darwin" {
-		if os.Args[0] != "./"+processName {
-			if err := StartProgram(); err != nil {
-				logln("运行失败：", err)
+		case "-build": //编译、重启
+			if err := CompileProgram(); err != nil {
+				logln("代码编译失败：" + err.Error())
 				os.Exit(1)
 			}
-			logln("开始运行!")
-			os.Exit(0)
-		}
-		if GitPull() == nil && CompileProgram() == nil && Fork() == nil {
-			logln("拉起新进程!")
+			logln("编译完成！")
+			Reload()
 			os.Exit(0)
 		}
 	}
-	go cycGitPull()
+	if os.Args[0] == "./"+processName {
+		pids, _ := peersID()
+		if len(pids) != 0 {
+			logln("程序已运行" + fmt.Sprint(pids) + "!")
+			os.Exit(1)
+		}
+		go cycGitPull()
+		return
+	}
+	if err := StartProgram(); err != nil {
+		logln("运行失败：", err)
+		os.Exit(1)
+	}
+	logln("尝试此指令查看运行输出", "tail -f "+execPath+"/"+processName+".out")
+	os.Exit(0)
+	// cmd := exec.Command(sh, re, "tail -f "+execPath+"/"+processName+".out")
+	// stdout, err := cmd.StdoutPipe()
+	// cmd.Start()
+	// reader := bufio.NewReader(stdout)
+	// for {
+	// 	line, err2 := reader.ReadString('\n')
+	// 	if err2 != nil || io.EOF == err2 {
+	// 		break
+	// 	}
+	// 	fmt.Print(line)
+	// }
 }
 
 //cycGitPull 周期性更新代码
 func cycGitPull() {
+	if runtime.GOOS == "darwin" {
+		return
+	}
 	tiker := time.NewTicker(time.Hour)
 	for {
-		<-tiker.C
 		if err := GitPull(); err != nil {
 			logln("周期性检查代码：", err)
 			continue
@@ -103,6 +119,7 @@ func cycGitPull() {
 			continue
 		}
 		InnerReload()
+		<-tiker.C
 	}
 }
 
@@ -215,15 +232,18 @@ func UpdateProgram() error {
 	return nil
 }
 
-//StartProgram 运行程序
+//StartProgram 运行程序并指定输出位置
 func StartProgram() error {
 	cmdStr := "cd " + execPath + " && ./" + processName + " >> " + processName + ".out &"
-	return exec.Command(sh, re, cmdStr).Start()
+	_, err := exec.Command(sh, re, cmdStr).Output()
+	return err
 }
 
+//logln 打印
 func logln(args ...interface{}) {
 	args = append([]interface{}{
 		time.Now().Local().Format("2006/01/02 15:04:05"),
+		processID,
 	}, args...)
 	fmt.Println(args...)
 }
