@@ -1,8 +1,10 @@
 package steady
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -46,28 +48,43 @@ func init() {
 			return
 		case "-reload": //重新加载
 			if err := Reload(); err != nil {
-				logln("重新加载失败：" + err.Error())
+				logln("重新加载失败：", err)
 				os.Exit(1)
 			}
 			logln("重新加载成功!")
 			os.Exit(0)
 		case "-update": //升级
 			if err := UpdateProgram(); err != nil {
-				logln("升级未完成：" + err.Error())
+				logln("升级未完成：", err)
 				os.Exit(1)
 			}
 			logln("升级成功！")
 			os.Exit(0)
 		case "-stop": //停止
 			if err := Stop(); err != nil {
-				logln("停止程序失败：" + err.Error())
+				logln("停止程序失败：", err)
 				os.Exit(1)
 			}
 			logln("停止程序成功!")
 			os.Exit(0)
+		case "-tail": //查看日志，但会影响热重启，如果解决这个问题需要改变进程名称
+			cmd := exec.Command(sh, re, "tail -f "+execPath+"/"+processName+".out")
+			stdout, err := cmd.StdoutPipe()
+			if err != nil {
+				logln("查看日志失败：", err)
+			}
+			cmd.Start()
+			reader := bufio.NewReader(stdout)
+			for {
+				line, err2 := reader.ReadString('\n')
+				if err2 != nil || io.EOF == err2 {
+					break
+				}
+				fmt.Print(line)
+			}
 		case "-build": //编译、重启
 			if err := CompileProgram(); err != nil {
-				logln("代码编译失败：" + err.Error())
+				logln("代码编译失败：", err.Error())
 				os.Exit(1)
 			}
 			logln("编译完成！")
@@ -84,23 +101,12 @@ func init() {
 		go cycGitPull()
 		return
 	}
+	logln("尝试指令查看运行日志", "tail -f "+execPath+"/"+processName+".out")
 	if err := StartProgram(); err != nil {
 		logln("运行失败：", err)
 		os.Exit(1)
 	}
-	logln("尝试此指令查看运行输出", "tail -f "+execPath+"/"+processName+".out")
 	os.Exit(0)
-	// cmd := exec.Command(sh, re, "tail -f "+execPath+"/"+processName+".out")
-	// stdout, err := cmd.StdoutPipe()
-	// cmd.Start()
-	// reader := bufio.NewReader(stdout)
-	// for {
-	// 	line, err2 := reader.ReadString('\n')
-	// 	if err2 != nil || io.EOF == err2 {
-	// 		break
-	// 	}
-	// 	fmt.Print(line)
-	// }
 }
 
 //cycGitPull 周期性更新代码
@@ -235,8 +241,7 @@ func UpdateProgram() error {
 //StartProgram 运行程序并指定输出位置
 func StartProgram() error {
 	cmdStr := "cd " + execPath + " && ./" + processName + " >> " + processName + ".out &"
-	_, err := exec.Command(sh, re, cmdStr).Output()
-	return err
+	return exec.Command(sh, re, cmdStr).Start()
 }
 
 //logln 打印
