@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"time"
 )
@@ -27,6 +28,9 @@ var (
 
 //init 初始化
 func init() {
+	if runtime.GOOS == "windows" {
+		return
+	}
 	var err error
 	//获取路径
 	execPath, err = filepath.Abs(filepath.Dir(os.Args[0]))
