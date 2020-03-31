@@ -207,12 +207,11 @@ func Stop() error {
 	pids, err := peersID()
 	if err != nil {
 		return errors.New("获取运行中程序：" + err.Error())
-	} else {
-		if len(pids) == 0 {
-			return errors.New("程序未运行！")
-		}
-		return exec.Command(sh, re, "kill "+strings.Join(pids, " ")).Start()
 	}
+	if len(pids) == 0 {
+		return errors.New("程序未运行！")
+	}
+	return exec.Command(sh, re, "kill "+strings.Join(pids, " ")).Start()
 }
 
 //Fork 拉起新进程
