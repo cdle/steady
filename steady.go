@@ -95,20 +95,20 @@ func init() {
 			os.Exit(0)
 		}
 	}
-	pids, _ := peersID()
-	if len(pids) != 0 {
-		logln("程序已运行" + fmt.Sprint(pids) + "!")
-		os.Exit(1)
-	}
-	if os.Args[0] == "./"+processName {
-		return
-	}
-	logln("尝试指令查看运行日志", "tail -f "+execPath+"/"+processName+".out")
-	if err := StartProgram(); err != nil {
-		logln("运行失败：", err)
-		os.Exit(1)
-	}
-	os.Exit(0)
+	// pids, _ := peersID()
+	// if len(pids) != 0 {
+	// 	logln("程序已运行" + fmt.Sprint(pids) + "!")
+	// 	os.Exit(1)
+	// }
+	// if os.Args[0] == "./"+processName {
+	// 	return
+	// }
+	// logln("尝试指令查看运行日志", "tail -f "+execPath+"/"+processName+".out")
+	// if err := StartProgram(); err != nil {
+	// 	logln("运行失败：", err)
+	// 	os.Exit(1)
+	// }
+	// os.Exit(0)
 }
 
 //cycGitPull 周期性更新代码
