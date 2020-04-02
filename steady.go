@@ -22,8 +22,9 @@ const (
 
 var (
 	processName string
-	ExecPath    string
-	processID   string
+	//ExecPath 执行路径
+	ExecPath  string
+	processID string
 )
 
 //init 初始化
