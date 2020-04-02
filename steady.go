@@ -64,6 +64,13 @@ func init() {
 			}
 			logln("升级成功！")
 			os.Exit(0)
+		case "-fork": //创建子进程
+			if err := StartProgram(); err != nil {
+				logln("服务启动失败：", err)
+				os.Exit(1)
+			}
+			logln("服务启动成功！")
+			os.Exit(0)
 		case "-stop": //停止
 			if err := Stop(); err != nil {
 				logln("停止程序失败：", err)
