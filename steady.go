@@ -48,6 +48,7 @@ func init() {
 		//热更新
 		case "-graceful":
 			logln("系统重启！")
+			go killOldProcess()
 			return
 		case "-reload": //重新加载
 			if err := Reload(); err != nil {
@@ -109,6 +110,23 @@ func init() {
 		os.Exit(1)
 	}
 	os.Exit(0)
+}
+
+//killOldProcess 杀死旧进程
+func killOldProcess() {
+	pids := []string{}
+	var err error
+	for {
+		time.Sleep(time.Second * 3)
+		pids, err = peersID()
+		if err != nil {
+			if len(pids) == 0 {
+				return
+			} else {
+				exec.Command(sh, re, "kill -9 "+strings.Join(pids, " ")).Start()
+			}
+		}
+	}
 }
 
 //cycGitPull 周期性更新代码
