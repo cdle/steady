@@ -22,8 +22,9 @@ const (
 
 var (
 	processName string
-	execPath    string
-	processID   string
+	//ExecPath 执行路径
+	ExecPath  string
+	processID string
 )
 
 //init 初始化
@@ -33,7 +34,7 @@ func init() {
 	}
 	var err error
 	//获取路径
-	execPath, err = filepath.Abs(filepath.Dir(os.Args[0]))
+	ExecPath, err = filepath.Abs(filepath.Dir(os.Args[0]))
 	if err != nil {
 		logln("获取程序路径失败：", err)
 	}
@@ -64,6 +65,13 @@ func init() {
 			}
 			logln("升级成功！")
 			os.Exit(0)
+		case "-fork": //创建子进程
+			if err := StartProgram(); err != nil {
+				logln("服务启动失败：", err)
+				os.Exit(1)
+			}
+			logln("服务启动成功！")
+			os.Exit(0)
 		case "-stop": //停止
 			if err := Stop(); err != nil {
 				logln("停止程序失败：", err)
@@ -72,7 +80,7 @@ func init() {
 			logln("停止程序成功!")
 			os.Exit(0)
 		case "-tail": //查看日志，但会影响热重启，如果解决这个问题需要改变进程名称
-			cmd := exec.Command(sh, re, "tail -f "+execPath+"/"+processName+".out")
+			cmd := exec.Command(sh, re, "tail -f "+ExecPath+"/"+processName+".out")
 			stdout, err := cmd.StdoutPipe()
 			if err != nil {
 				logln("查看日志失败：", err)
@@ -96,20 +104,20 @@ func init() {
 			os.Exit(0)
 		}
 	}
-	pids, _ := peersID()
-	if len(pids) != 0 {
-		logln("程序已运行" + fmt.Sprint(pids) + "!")
-		os.Exit(1)
-	}
-	if os.Args[0] == "./"+processName {
-		return
-	}
-	logln("尝试指令查看运行日志", "tail -f "+execPath+"/"+processName+".out")
-	if err := StartProgram(); err != nil {
-		logln("运行失败：", err)
-		os.Exit(1)
-	}
-	os.Exit(0)
+	// pids, _ := peersID()
+	// if len(pids) != 0 {
+	// 	logln("程序已运行" + fmt.Sprint(pids) + "!")
+	// 	os.Exit(1)
+	// }
+	// if os.Args[0] == "./"+processName {
+	// 	return
+	// }
+	// logln("尝试指令查看运行日志", "tail -f "+execPath+"/"+processName+".out")
+	// if err := StartProgram(); err != nil {
+	// 	logln("运行失败：", err)
+	// 	os.Exit(1)
+	// }
+	// os.Exit(0)
 }
 
 //killOldProcess 杀死旧进程
@@ -151,7 +159,7 @@ func killOldProcess() {
 
 //CompileProgram 编译程序
 func CompileProgram() error {
-	cmdStr := "cd " + execPath + " && go build -o " + processName
+	cmdStr := "cd " + ExecPath + " && go build -o " + processName
 	_, err := exec.Command(sh, re, cmdStr).Output()
 	if err != nil {
 		return err
@@ -161,7 +169,7 @@ func CompileProgram() error {
 
 //GitPull 获取新代码
 func GitPull() error {
-	cmdStr := "cd " + execPath + " && git checkout . && git pull" //&& git checkout .
+	cmdStr := "cd " + ExecPath + " && git checkout . && git pull" //&& git checkout .
 	rtn, err := exec.Command(sh, re, cmdStr).Output()
 	if err != nil {
 		return err
@@ -259,7 +267,7 @@ func UpdateProgram() error {
 
 //StartProgram 运行程序并指定输出位置
 func StartProgram() error {
-	cmdStr := "cd " + execPath + " && ./" + processName + " >> " + processName + ".out &"
+	cmdStr := "cd " + ExecPath + " && ./" + processName + " >> " + processName + ".out &"
 	return exec.Command(sh, re, cmdStr).Start()
 }
 
