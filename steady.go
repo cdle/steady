@@ -127,12 +127,14 @@ func killOldProcess() {
 	for {
 		time.Sleep(time.Second * 3)
 		pids, err = peersID()
-		if err != nil {
+		if err == nil {
 			if len(pids) == 0 {
 				return
 			} else {
 				exec.Command(sh, re, "kill -9 "+strings.Join(pids, " ")).Start()
 			}
+		} else {
+			return
 		}
 	}
 }
