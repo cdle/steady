@@ -125,7 +125,7 @@ func killOldProcess() {
 	pids := []string{}
 	var err error
 	for {
-		time.Sleep(time.Second * 3)
+		time.Sleep(time.Second * 10)
 		pids, err = peersID()
 		if err == nil {
 			if len(pids) == 0 {
