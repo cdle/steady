@@ -49,7 +49,7 @@ func init() {
 		//热更新
 		case "-graceful":
 			logln("系统重启！")
-			go killOldProcess()
+			// go killOldProcess()
 			return
 		case "-reload": //重新加载
 			if err := Reload(); err != nil {
